@@ -1,4 +1,6 @@
 from django.shortcuts import render
+
+
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.viewsets import ModelViewSet
@@ -15,12 +17,23 @@ from .serializers import (
     VideoGameSerializer,PublisherSerializer,
     CategorySerializer,PostSerializer,
 )
+#sorting, filtering and pagination
+from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
+
 # Create your views here.
 
 class VideogameViewSet(ModelViewSet):
     queryset = VideoGame.objects.select_related( 'category', 'publisher').prefetch_related('tags', 'genre', 'platform', 'images').all()
     serializer_class = VideoGameSerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['title__icontains', 'age_rating__exact']
+    filterset_fields = ['category', 'tags', 'age_rating', 'genre', 'platform']
+    ordering_fields = ['-created_at', 'title']
+    pagination_class = PageNumberPagination
 
 
 class VideogameImageViewSet(ModelViewSet):
